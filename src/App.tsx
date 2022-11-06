@@ -21,27 +21,45 @@ function App() {
     setCtx(main.getContext("2d"));
   }, []);
 
+  useEffect(() => {
+    const spaceHandler = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        dino.isJump = true;
+      }
+    };
+
+    document.addEventListener("keydown", spaceHandler);
+
+    return () => {
+      document.removeEventListener("keydown", spaceHandler);
+    };
+  });
+
   function frameExcute() {
-    requestAnimationFrame(frameExcute);
+    const animation = requestAnimationFrame(frameExcute);
     timer++;
 
     if (ctx && mainCanvas.current) {
       ctx.clearRect(0, 0, mainCanvas.current.width, mainCanvas.current.height);
 
-      if (timer % 60 === 0) {
+      if (timer % 120 === 0) {
+        timer = 0;
         const cactus = new Cactus(450, 200, 50, 50);
         cactuses.push(cactus);
       }
 
       cactuses.forEach((element, index, array) => {
-        if (element.x < -50) {
+        if (element.x < 0) {
           array.shift();
         }
 
         element.x -= 3;
+        if (!mainCanvas.current) return;
+        element.crash(dino, ctx, mainCanvas.current, animation);
         element.draw(ctx);
       });
 
+      dino.jump();
       dino.draw(ctx);
     }
   }
@@ -50,7 +68,11 @@ function App() {
     frameExcute();
   }
 
-  return <canvas ref={mainCanvas}></canvas>;
+  return (
+    <div>
+      <canvas ref={mainCanvas}></canvas>
+    </div>
+  );
 }
 
 export default App;
